@@ -1,13 +1,4 @@
--- Gestor de Eventos Academicos
--- Ejecuta este archivo en el SQL Editor de Supabase.
-
 create extension if not exists "pgcrypto";
-
--- Limpieza opcional para desarrollo.
--- Si ya tienes datos reales, no ejecutes estas lineas.
--- drop table if exists public.registrations;
--- drop table if exists public.events;
--- drop table if exists public.profiles;
 
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
@@ -43,7 +34,6 @@ alter table public.profiles enable row level security;
 alter table public.events enable row level security;
 alter table public.registrations enable row level security;
 
--- Funcion auxiliar para validar administradores sin exponer todos los perfiles.
 create or replace function public.is_admin()
 returns boolean
 language sql
@@ -59,7 +49,6 @@ as $$
   );
 $$;
 
--- Crea automaticamente un perfil cuando alguien se registra con Supabase Auth.
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -79,8 +68,6 @@ begin
 end;
 $$;
 
--- Evita que un usuario normal cambie su propio rol desde el cliente.
--- El SQL Editor de Supabase puede seguir usandose para marcar admins manualmente.
 create or replace function public.prevent_profile_role_escalation()
 returns trigger
 language plpgsql
@@ -179,15 +166,3 @@ for delete
 to authenticated
 using (auth.uid() = user_id);
 
--- Datos de ejemplo opcionales.
--- Ejecutalos despues de crear un usuario admin y reemplaza el uuid si quieres asociarlos.
--- insert into public.events (title, description, event_date, location, category)
--- values
---   ('Conferencia de Innovacion Educativa', 'Charla sobre tecnologia aplicada a la educacion.', now() + interval '3 days', 'Auditorio principal', 'Conferencia'),
---   ('Taller de Git y GitHub', 'Sesion practica para aprender flujo basico con Git.', now() + interval '7 days', 'Laboratorio 2', 'Taller'),
---   ('Seminario de Investigacion', 'Presentacion de avances de proyectos academicos.', now() + interval '14 days', 'Sala de conferencias', 'Seminario');
-
--- Para convertir un usuario en administrador:
--- update public.profiles
--- set role = 'admin'
--- where id = 'uuid-del-usuario';
